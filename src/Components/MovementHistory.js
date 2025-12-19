@@ -60,6 +60,7 @@ const MovementHistory = () => {
                 <th>Tipo</th>
                 <th>Cantidad</th>
                 <th>Responsable</th>
+                <th>Observaciones</th>
               </tr>
             </thead>
             <tbody>
@@ -70,6 +71,7 @@ const MovementHistory = () => {
                   <td data-label="Tipo">{mov.type}</td>
                   <td data-label="Cantidad">{mov.quantity}</td>
                   <td data-label="Responsable">{mov.responsible}</td>
+                  <td data-label="Observaciones">{mov.observations || 'N/A'}</td>
                 </tr>
               )) : (
                 <tr>

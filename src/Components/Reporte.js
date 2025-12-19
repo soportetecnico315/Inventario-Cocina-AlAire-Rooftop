@@ -25,7 +25,14 @@ const Reporte = () => {
     const unsubscribeInv = onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const inventoryList = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        const inventoryList = Object.keys(data).map(key => {
+          const itemData = data[key];
+          // Corregimos la asignación para no perder el nombre y otros campos
+          return { ...itemData, 
+                   id: key, 
+                   bodega: Number(itemData.bodega || 0), 
+                   stockMin: Number(itemData.stockMin || 0) };
+        });
         setInventory(inventoryList);
       } else {
         setInventory([]);
@@ -55,7 +62,8 @@ const Reporte = () => {
 
   // 2. Memo para calcular productos con stock bajo
   const lowStockItems = useMemo(() => {
-    return inventory.filter(item => item.bodega <= item.stockMin);
+    // Asegurarse de que la comparación sea numérica
+    return inventory.filter(item => Number(item.bodega) <= Number(item.stockMin));
   }, [inventory]);
 
   // 3. Funciones para el modal y el calendario

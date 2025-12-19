@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '../firebase';
-import { collection, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, runTransaction, addDoc } from 'firebase/firestore';
+import { rt_db } from '../firebase';
+import { ref, onValue, serverTimestamp, remove, update, runTransaction, push, set } from 'firebase/database';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
@@ -34,24 +34,44 @@ const Inventario = ({ userData }) => {
   const [isObservationsModalOpen, setIsObservationsModalOpen] = useState(false);
   const [observationItem, setObservationItem] = useState(null);
   const [isInventoryClosed, setIsInventoryClosed] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false); // Estado para el modal de confirmación de borrado
+  const [itemToDelete, setItemToDelete] = useState(null); // Estado para el ítem a eliminar
+  const [isMovementPromptOpen, setIsMovementPromptOpen] = useState(false); // Nuevo estado para el modal de prompt de observaciones
+  const [isObservationInputOpen, setIsObservationInputOpen] = useState(false); // Nuevo estado para el modal de input de observaciones
+  const [pendingMovementData, setPendingMovementData] = useState(null); // Datos del movimiento pendientes
+  const [pendingResponsibleName, setPendingResponsibleName] = useState(''); // Nombre del responsable pendiente
+  const [currentMovementObservationText, setCurrentMovementObservationText] = useState(''); // Texto de la observación del movimiento
+  const [isClosingInventory, setIsClosingInventory] = useState(false); // Estado para la acción de guardar/cerrar
 
   // Leer datos del inventario en tiempo real
   useEffect(() => {
-    const inventoryCollection = collection(db, 'inventory');
+    const inventoryRef = ref(rt_db, 'inventory');
     
     // onSnapshot ahora incluye un manejador de errores
-    const unsubscribe = onSnapshot(inventoryCollection, 
+    const unsubscribe = onValue(inventoryRef, 
       (snapshot) => {
-      const inventoryData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setInventory(inventoryData);
+      const data = snapshot.val();
+      if (data) {
+        const inventoryList = Object.keys(data).map(key => {
+          const itemData = data[key];
+          return {
+            id: key,
+            ...itemData,
+            bodega: Number(itemData.bodega || 0),
+            cocina: Number(itemData.cocina || 0),
+            stockMin: Number(itemData.stockMin || 0),
+            stockMax: Number(itemData.stockMax || 0),
+          };
+        });
+        setInventory(inventoryList);
+      } else {
+        setInventory([]);
+      }
       setLoading(false);
     }, 
     (error) => {
       console.error("Error al obtener el inventario: ", error);
-      alert("No se pudo cargar el inventario. Revisa las reglas de Firestore.");
+      alert("No se pudo cargar el inventario. Revisa las reglas de la base de datos.");
       setLoading(false);
     });
 
@@ -59,16 +79,37 @@ const Inventario = ({ userData }) => {
     return () => unsubscribe();
   }, []);
 
+  // Leer el estado de cierre del inventario
+  useEffect(() => {
+    const statusRef = ref(rt_db, 'app_state/inventory_status');
+    const unsubscribe = onValue(statusRef, (snapshot) => {
+      const data = snapshot.val();
+      setIsInventoryClosed(!!(data && data.isClosed));
+    }, (error) => {
+      console.error("Error al obtener el estado del inventario: ", error);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewItem({ ...newItem, [name]: value });
+    const { name, value, type } = e.target;
+    // Si el input es de tipo 'number', convierte el valor a número.
+    const parsedValue = type === 'number' ? Number(value) : value;
+    setNewItem({ ...newItem, [name]: parsedValue });
   };
 
   const handleSaveItem = async (e) => { // Renombramos a handleSaveItem para manejar añadir y editar
     e.preventDefault();
-    const itemToSave = editingItem || newItem; // Si estamos editando, usamos editingItem, si no, newItem
+    // Si estamos editando, fusionamos los datos originales con los nuevos. Si no, usamos el nuevo ítem.
+    const finalItem = editingItem ? { ...editingItem, ...newItem } : newItem;
 
-    if (!itemToSave.name || !itemToSave.bodega || !itemToSave.cocina || !itemToSave.stockMin || !itemToSave.stockMax) {
+    // Validación más robusta que permite el valor 0 en campos numéricos
+    if (
+      !finalItem.name || 
+      finalItem.bodega === '' || finalItem.bodega === null ||
+      finalItem.cocina === '' || finalItem.cocina === null ||
+      finalItem.stockMin === '' || finalItem.stockMin === null ||
+      finalItem.stockMax === '' || finalItem.stockMax === null) {
       alert("Por favor, completa todos los campos.");
       return;
     }
@@ -83,28 +124,30 @@ const Inventario = ({ userData }) => {
 
       if (editingItem) {
         // Si estamos editando, actualizamos el documento existente
-        const itemDocRef = doc(db, 'inventory', editingItem.id);
-        await updateDoc(itemDocRef, {
-          ...itemToSave, // Usamos todos los campos del item en edición
+        const itemRef = ref(rt_db, `inventory/${editingItem.id}`);
+        await update(itemRef, {
+          ...finalItem, // Usamos el objeto fusionado para la actualización
           ...commonData  // Sobrescribimos con los datos comunes (responsable, fecha)
         });
-        alert(`Producto "${itemToSave.name}" actualizado con éxito.`);
+        alert(`Producto "${finalItem.name}" actualizado con éxito.`);
       } else {
         // Si estamos añadiendo, creamos un nuevo documento
         const docData = {
-          ...itemToSave,
+          ...finalItem,
           ...commonData,
           ingreso: 0, // Solo se inicializa en 0 al añadir
           salida: 0,   // Solo se inicializa en 0 al añadir
         };
-        // Usamos addDoc para crear el nuevo producto en Firestore
-        await addDoc(collection(db, 'inventory'), docData);
-        alert(`Producto "${itemToSave.name}" añadido con éxito.`);
+        // Usamos push y set para crear el nuevo producto en Realtime Database
+        const newItemRef = push(ref(rt_db, 'inventory'));
+        await set(newItemRef, docData);
+        alert(`Producto "${finalItem.name}" añadido con éxito.`);
       }
 
       // Limpiar el formulario y cerrar el modal
       setNewItem({ name: '', bodega: '', cocina: '', stockMin: '', stockMax: '' });
       setEditingItem(null); // Limpiar el ítem en edición
+      setNewItem({ name: '', bodega: '', cocina: '', stockMin: '', stockMax: '' }); // Resetear formulario
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error detallado al guardar el producto: ", error);
@@ -116,23 +159,32 @@ const Inventario = ({ userData }) => {
 
   const handleOpenEditModal = (item) => {
     setEditingItem(item);
+    setNewItem(item); // Precargar los datos del ítem en el formulario
     setIsModalOpen(true);
   };
 
-  const handleDeleteItem = async (id, name) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar el producto "${name}"?`)) {
+  const handleDeleteItem = (item) => {
+    setItemToDelete(item);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (itemToDelete) {
       try {
-        // Referencia al documento específico que queremos eliminar
-        const itemDocRef = doc(db, 'inventory', id);
-        await deleteDoc(itemDocRef);
-        // Firestore en tiempo real actualizará el estado 'inventory' automáticamente
-        alert(`Producto "${name}" eliminado con éxito.`);
+        const itemRef = ref(rt_db, `inventory/${itemToDelete.id}`);
+        await remove(itemRef);
+        alert(`Producto "${itemToDelete.name}" eliminado con éxito.`);
       } catch (error) {
         console.error("Error al eliminar el producto: ", error);
         alert("Ocurrió un error al eliminar el producto.");
+      } finally {
+        // Cerrar el modal y limpiar el estado
+        setIsDeleteConfirmOpen(false);
+        setItemToDelete(null);
       }
     }
   };
+
 
   const handleOpenObservationsModal = (item) => {
     setObservationItem(item);
@@ -150,7 +202,7 @@ const Inventario = ({ userData }) => {
 
     if (value.trim()) {
       const suggestions = inventory.filter(item =>
-        item.name.toLowerCase().includes(value.toLowerCase())
+        (item.name || '').toLowerCase().includes(value.toLowerCase())
       );
       setMovementSuggestions(suggestions);
     } else {
@@ -168,34 +220,37 @@ const Inventario = ({ userData }) => {
     setMovementSuggestions([]); // Ocultar sugerencias
   };
 
-  const handleRegisterMovement = async (e) => {
-    e.preventDefault();
-    const { itemId, type, quantity } = movementData;
+  // Nueva función para ejecutar el registro del movimiento, con o sin observaciones
+  const executeMovementRegistration = async (addObservations) => {
+    const { itemId, type, quantity } = pendingMovementData;
+    const movementQuantity = Number(quantity);
+    const responsibleName = pendingResponsibleName;
+    const observations = addObservations ? currentMovementObservationText : '';
 
     if (!itemId || !type || !quantity || Number(quantity) <= 0) {
       alert("Por favor, selecciona un producto, un tipo de movimiento y una cantidad válida.");
       return;
     }
 
+    // Declarar las variables en el ámbito exterior para que sean accesibles después de la transacción.
+    let beforeBodega, beforeCocina;
+
     //setIsRegistering(true); // Descomentar si se vuelve a usar
-    const itemDocRef = doc(db, 'inventory', itemId);
-    const movementQuantity = Number(quantity);
-
-    const responsibleName = `${userData?.nombre || ''} ${userData?.apellidos || ''}`.trim() || 'N/A';
+    const itemRef = ref(rt_db, `inventory/${itemId}`);
     try {
-      await runTransaction(db, async (transaction) => {
-        const itemDoc = await transaction.get(itemDocRef);
-        if (!itemDoc.exists()) {
-          throw new Error("El producto no existe.");
+      await runTransaction(itemRef, (currentData) => {
+        if (!currentData) {
+          // Si no hay datos, la transacción se aborta retornando undefined.
+          // Lanzamos un error para que el catch lo maneje.
+          throw new Error("El producto no existe o no se pudo cargar.");
         }
-
-        const currentData = itemDoc.data();
         // Capturar estado antes del movimiento
-        const beforeBodega = currentData.bodega;
-        const beforeCocina = currentData.cocina;
+        // Asignar a las variables del ámbito exterior.
+        beforeBodega = currentData.bodega;
+        beforeCocina = currentData.cocina;
 
-        let newBodega = currentData.bodega;
-        let newCocina = currentData.cocina;
+        let newBodega = Number(currentData.bodega); // Asegurarse de que sean números
+        let newCocina = Number(currentData.cocina); // Asegurarse de que sean números
         let newIngreso = currentData.ingreso;
         let newSalida = currentData.salida;
 
@@ -227,25 +282,37 @@ const Inventario = ({ userData }) => {
             throw new Error("Tipo de movimiento no válido.");
         }
 
-        transaction.update(itemDocRef, { bodega: newBodega, cocina: newCocina, ingreso: newIngreso, salida: newSalida, lastUpdated: serverTimestamp(), responsable: `${userData?.nombre || ''} ${userData?.apellidos || ''}`.trim() || 'N/A' });
+        const updateData = {
+          bodega: newBodega,
+          cocina: newCocina,
+          ingreso: newIngreso,
+          salida: newSalida,
+          lastUpdated: serverTimestamp(),
+          responsable: responsibleName,
+        };
 
-        // Registrar el movimiento en la colección 'movements'
-        const productName = inventory.find(item => item.id === itemId)?.name || 'Producto Desconocido';
-        const newMovementDocRef = doc(collection(db, 'movements')); // Firestore genera un nuevo ID
+        // Actualizar el campo 'observations' del producto en el inventario
+        if (observations) {
+          updateData.observations = observations;
+        }
+        return updateData; // La transacción de RTDB retorna el nuevo estado
+      });
 
-        transaction.set(newMovementDocRef, {
-          productId: itemId,
-          productName: productName,
-          type: type,
-          quantity: movementQuantity,
-          beforeBodega: beforeBodega,
-          beforeCocina: beforeCocina,
-          afterBodega: newBodega,
-          afterCocina: newCocina,
-          responsible: responsibleName,
-          timestamp: serverTimestamp()
-        });
-
+      // --- Escritura del movimiento (fuera de la transacción) ---
+      const productName = inventory.find(item => item.id === itemId)?.name || 'Producto Desconocido';
+      const newMovementRef = push(ref(rt_db, 'movements'));
+      await set(newMovementRef, {
+        productId: itemId,
+        productName: productName,
+        type: type,
+        quantity: movementQuantity,
+        // Los valores 'after' se obtienen re-leyendo el inventario, que ya se actualizó.
+        // Para simplificar, los calculamos de nuevo.
+        beforeBodega: beforeBodega,
+        beforeCocina: beforeCocina,
+        responsible: responsibleName,
+        timestamp: serverTimestamp(),
+        observations: observations,
       });
 
       alert("Movimiento registrado con éxito.");
@@ -254,6 +321,104 @@ const Inventario = ({ userData }) => {
     } catch (error) {
       console.error("Error al registrar el movimiento: ", error);
       alert(`Error: ${error.message}`);
+    } finally {
+      // Limpiar estados temporales y cerrar modales de movimiento
+      setIsMovementPromptOpen(false);
+      setIsObservationInputOpen(false);
+      setPendingMovementData(null);
+      setPendingResponsibleName('');
+      setCurrentMovementObservationText('');
+    }
+  };
+  
+  const handleRegisterMovement = (e) => {
+    e.preventDefault(); // Prevenir el envío del formulario por defecto
+    if (!movementData.itemId || !movementData.type || !movementData.quantity || Number(movementData.quantity) <= 0) {
+      alert("Por favor, selecciona un producto, un tipo de movimiento y una cantidad válida.");
+      return;
+    }
+
+    const responsibleName = `${userData?.nombre || ''} ${userData?.apellidos || ''}`.trim() || 'N/A';
+    
+    // Almacenar los datos del movimiento y abrir el modal de prompt de observaciones
+    setPendingMovementData(movementData);
+    setPendingResponsibleName(responsibleName);
+    setIsMovementPromptOpen(true);
+  };
+
+  const handleSaveMovementObservations = () => {
+    executeMovementRegistration(true); // Ejecutar el registro con observaciones
+  };
+
+  const handleCancelMovementObservations = () => {
+    setIsObservationInputOpen(false);
+    setCurrentMovementObservationText(''); // Limpiar el texto si se cancela
+    // Si el usuario cancela las observaciones, aún puede querer registrar el movimiento sin ellas
+    // O simplemente cancelar todo el proceso. Aquí asumimos que cancelar observaciones cancela el movimiento.
+    // Si se desea registrar sin observaciones al cancelar, se llamaría a executeMovementRegistration(false);
+    // Por ahora, solo cerramos el modal y limpiamos.
+    setIsMovementPromptOpen(false); // Asegurarse de que el prompt también se cierre
+  };
+
+  const handleNoObservations = () => {
+    executeMovementRegistration(false); // Ejecutar el registro sin observaciones
+  };
+
+  const handleSaveAndCloseInventory = async () => {
+    if (!window.confirm("¿Estás seguro de que quieres guardar y cerrar el inventario? No podrás realizar más modificaciones hasta que sea revisado.")) {
+      return;
+    }
+
+    setIsClosingInventory(true);
+    const responsibleName = `${userData?.nombre || ''} ${userData?.apellidos || ''}`.trim() || 'N/A';
+    const snapshotData = {
+      createdAt: serverTimestamp(),
+      responsible: responsibleName,
+      inventory: inventory // Guardamos una copia completa del inventario
+    };
+
+    try {
+      // 1. Guardar el snapshot en una nueva colección
+      const newSnapshotRef = push(ref(rt_db, 'inventory_snapshots'));
+      await set(newSnapshotRef, snapshotData);
+
+      // 2. Actualizar el estado para cerrar el inventario
+      const statusRef = ref(rt_db, 'app_state/inventory_status');
+      await set(statusRef, { isClosed: true });
+      alert("Inventario guardado y cerrado con éxito.");
+    } catch (error) {
+      console.error("Error al guardar el snapshot del inventario: ", error);
+      alert("Ocurrió un error al guardar el inventario. Por favor, inténtalo de nuevo.");
+    } finally {
+      setIsClosingInventory(false);
+    }
+  };
+  const handleReopenInventory = async () => {
+    if (window.confirm("¿Estás seguro de que quieres reabrir el inventario? Se reiniciarán los contadores de Ingreso, Salida y las observaciones de todos los productos.")) {
+      setIsSaving(true); // Usamos el estado de guardado para deshabilitar botones
+      try {
+        const updates = {};
+        
+        // Iterar sobre todos los productos en el estado local del inventario
+        inventory.forEach(item => {
+          updates[`/inventory/${item.id}/ingreso`] = 0;
+          updates[`/inventory/${item.id}/salida`] = 0;
+          updates[`/inventory/${item.id}/observations`] = null; // En RTDB, null elimina la clave
+        });
+
+        // Actualizar el estado para reabrir el inventario
+        updates['/app_state/inventory_status/isClosed'] = false;
+
+        // Ejecutar todas las actualizaciones en una sola operación
+        await update(ref(rt_db), updates);
+
+        alert("Inventario reabierto. Los contadores y observaciones han sido reiniciados.");
+      } catch (error) {
+        console.error("Error al reabrir el inventario: ", error);
+        alert("Ocurrió un error al reabrir el inventario.");
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
   // --- Placeholder para las funciones de descarga ---
@@ -360,10 +525,13 @@ const Inventario = ({ userData }) => {
     let sortableItems = [...inventory];
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
-        if (a[sortConfig.key].toLowerCase() < b[sortConfig.key].toLowerCase()) {
+        // Asegurarse de que los valores a comparar sean strings
+        const valA = (a[sortConfig.key] || '').toString().toLowerCase();
+        const valB = (b[sortConfig.key] || '').toString().toLowerCase();
+        if (valA < valB) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
-        if (a[sortConfig.key].toLowerCase() > b[sortConfig.key].toLowerCase()) {
+        if (valA > valB) {
           return sortConfig.direction === 'ascending' ? 1 : -1;
         }
         return 0;
@@ -382,7 +550,7 @@ const Inventario = ({ userData }) => {
 
   // El filtrado ahora se aplica sobre la lista ordenada
   const filteredInventory = sortedInventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -414,14 +582,14 @@ const Inventario = ({ userData }) => {
           <div className="modal-content">
             <h3>{editingItem ? 'Editar Producto' : 'Añadir Nuevo Producto'}</h3> 
             <form onSubmit={handleSaveItem} className="modal-form">
-              <input type="text" name="name" value={editingItem ? editingItem.name : newItem.name} onChange={handleInputChange} placeholder="Nombre del Producto" required />
+              <input type="text" name="name" value={newItem.name} onChange={handleInputChange} placeholder="Nombre del Producto" required />
               <div className="form-row">
-                <input type="number" name="bodega" value={editingItem ? editingItem.bodega : newItem.bodega} onChange={handleInputChange} placeholder="Cant. en Bodega" required />
-                <input type="number" name="cocina" value={editingItem ? editingItem.cocina : newItem.cocina} onChange={handleInputChange} placeholder="Cant. en Cocina" required />
+                <input type="number" name="bodega" value={newItem.bodega} onChange={handleInputChange} placeholder="Cant. en Bodega" required />
+                <input type="number" name="cocina" value={newItem.cocina} onChange={handleInputChange} placeholder="Cant. en Cocina" required />
               </div>
               <div className="form-row">
-                <input type="number" name="stockMin" value={editingItem ? editingItem.stockMin : newItem.stockMin} onChange={handleInputChange} placeholder="Stock Mínimo" required />
-                <input type="number" name="stockMax" value={editingItem ? editingItem.stockMax : newItem.stockMax} onChange={handleInputChange} placeholder="Stock Máximo" required />
+                <input type="number" name="stockMin" value={newItem.stockMin} onChange={handleInputChange} placeholder="Stock Mínimo" required />
+                <input type="number" name="stockMax" value={newItem.stockMax} onChange={handleInputChange} placeholder="Stock Máximo" required />
               </div>
               <div className="modal-actions">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="cancel-btn">Cancelar</button>
@@ -474,8 +642,10 @@ const Inventario = ({ userData }) => {
                 </td>
                 <td className="actions-cell">
                   <button className="icon-btn edit-btn" onClick={() => handleOpenEditModal(item)} disabled={isInventoryClosed}>✏️</button>
-                  <button className="icon-btn delete-btn" onClick={() => handleDeleteItem(item.id, item.name)} disabled={isInventoryClosed}>🗑️</button>
-                  <button className="icon-btn observation-btn" onClick={() => handleOpenObservationsModal(item)}>💬</button>
+                  <button className="icon-btn delete-btn" onClick={() => handleDeleteItem(item)} disabled={isInventoryClosed}>🗑️</button>
+                  <button className="icon-btn observation-btn" onClick={() => handleOpenObservationsModal(item)}>💬
+                    {item.observations && <span className="observation-dot"></span>}
+                  </button>
                 </td>
               </tr>
             ))}
@@ -498,6 +668,60 @@ const Inventario = ({ userData }) => {
               <button onClick={() => setIsObservationsModalOpen(false)} className="cancel-btn">
                 Cerrar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar producto */}
+      {isDeleteConfirmOpen && itemToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirmar Eliminación</h3>
+            <p style={{color: 'white', fontSize: '1.1rem', textAlign: 'center', margin: '2rem 0'}}>
+              ¿Estás seguro de que quieres eliminar el producto "{itemToDelete.name}"?
+            </p>
+            <div className="modal-actions">
+              <button onClick={() => setIsDeleteConfirmOpen(false)} className="cancel-btn">
+                Cancelar
+              </button>
+              <button onClick={confirmDeleteItem} className="submit-btn" style={{backgroundColor: '#e03131'}}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para preguntar si hay observaciones en el movimiento */}
+      {isMovementPromptOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>¿Deseas añadir observaciones a este movimiento?</h3>
+            <div className="modal-actions">
+              <button type="button" onClick={() => {
+                setIsMovementPromptOpen(false);
+                setIsObservationInputOpen(true); // Abrir el modal de input de observaciones
+              }} className="submit-btn">Sí</button>
+              <button type="button" onClick={handleNoObservations} className="cancel-btn">No</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para introducir observaciones del movimiento */}
+      {isObservationInputOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Añadir Observaciones al Movimiento</h3>
+            <textarea
+              value={currentMovementObservationText}
+              onChange={(e) => setCurrentMovementObservationText(e.target.value)}
+              placeholder="Escribe tus observaciones aquí..."
+              rows="5"
+              className="modal-textarea"
+            ></textarea>
+            <div className="modal-actions">
+              <button type="button" onClick={handleCancelMovementObservations} className="cancel-btn">Cancelar</button>
+              <button type="button" onClick={handleSaveMovementObservations} className="submit-btn">Guardar Observación</button>
             </div>
           </div>
         </div>
@@ -553,7 +777,7 @@ const Inventario = ({ userData }) => {
                 required
               />
             </div>
-            <button type="submit" className="footer-btn save-btn">
+            <button type="submit" className="footer-btn save-btn" disabled={isInventoryClosed}>
               Registrar Movimiento
             </button>
           </form>
@@ -576,11 +800,11 @@ const Inventario = ({ userData }) => {
       )}
 
       <div className="table-actions-footer">
-        <button 
-          onClick={() => setIsInventoryClosed(!isInventoryClosed)} 
-          className={`footer-btn ${isInventoryClosed ? 'reviewed-btn' : 'save-btn'}`}
-        >
-          {isInventoryClosed ? 'Reabrir Inventario' : 'Cerrar Inventario'}
+        <button onClick={handleSaveAndCloseInventory} className="footer-btn save-btn" disabled={isInventoryClosed || isClosingInventory}>
+          {isClosingInventory ? 'Guardando...' : 'Guardar'}
+        </button>
+        <button onClick={handleReopenInventory} className="footer-btn reviewed-btn" disabled={!isInventoryClosed || isSaving}>
+          {isSaving ? 'Procesando...' : 'Revisado'}
         </button>
         <button onClick={() => setIsDownloadModalOpen(true)} className="footer-btn download-btn">Descargar</button>
       </div>

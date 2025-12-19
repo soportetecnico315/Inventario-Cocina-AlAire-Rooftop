@@ -152,6 +152,22 @@
 .delete-btn { color: #ff6b6b; }
 .observation-btn { color: #a9a9a9; }
 
+/* Estilos para el punto rojo de observación */
+.observation-btn {
+  position: relative; /* Para posicionar el punto rojo */
+}
+
+.observation-dot {
+  position: absolute;
+  top: 0px; /* Ajusta la posición vertical */
+  right: 0px; /* Ajusta la posición horizontal */
+  width: 8px;
+  height: 8px;
+  background-color: red;
+  border-radius: 50%;
+  border: 1px solid white; /* Pequeño borde para que resalte */
+}
+
 /* --- Modal Styles --- */
 .modal-overlay {
   position: fixed;
@@ -223,6 +239,18 @@
 .cancel-btn { background-color: #495057; color: white; }
 .submit-btn { background-color: rgb(132, 81, 26); color: white; }
 
+/* Estilos para el textarea en los modales */
+.modal-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  resize: vertical; /* Permite redimensionar verticalmente */
+  min-height: 100px;
+}
 /* --- Footer Table Actions --- */
 .table-actions-footer {
   display: flex;
@@ -475,6 +503,7 @@
   max-height: 200px;
   overflow-y: auto;
   z-index: 10;
+  color: #fff;
 }
 
 .suggestions-list li {

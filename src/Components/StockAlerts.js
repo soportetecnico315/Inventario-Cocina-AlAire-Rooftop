@@ -1,21 +1,32 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { rt_db } from '../firebase';
+import { ref, onValue, query, orderByChild } from 'firebase/database';
 
 const StockAlerts = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const inventoryCollection = collection(db, 'inventory');
-    const q = query(inventoryCollection, orderBy('name'));
+    const inventoryRef = ref(rt_db, 'inventory');
+    const q = query(inventoryRef, orderByChild('name'));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const inventoryData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setInventory(inventoryData);
+    const unsubscribe = onValue(q, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const inventoryList = Object.keys(data).map(key => {
+          const itemData = data[key];
+          return {
+            id: key,
+            ...itemData,
+            bodega: Number(itemData.bodega || 0),
+            cocina: Number(itemData.cocina || 0),
+            stockMin: Number(itemData.stockMin || 0),
+          };
+        });
+        setInventory(inventoryList);
+      } else {
+        setInventory([]);
+      }
       setLoading(false);
     }, (error) => {
       console.error("Error al obtener el inventario para las alertas: ", error);
