@@ -1,0 +1,321 @@
+.config-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  animation: fadeIn 0.5s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.config-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.config-section {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Nueva clase específica para centrar solo el cuadro de perfil */
+.profile-section {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.config-section h3 {
+  margin-top: 0;
+  border-bottom: 1px solid rgb(132, 81, 26);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  color: white; /* Asegura que el título h3 sea blanco */
+}
+
+.config-section p {
+  color: #dbe4ee; /* Un blanco más suave para el párrafo */
+}
+
+/* Contenedor para hacer la tabla desplazable */
+.table-responsive-wrapper {
+  overflow-x: auto;
+}
+
+/* Estilos para la tabla de administración de usuarios */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-table th {
+  background-color: rgba(0, 0, 0, 0.3);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.admin-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.admin-table td {
+  text-transform: capitalize;
+}
+
+.admin-table td:first-of-type {
+  font-weight: 500;
+}
+
+.admin-table td[data-label="Correo"] {
+  text-transform: none; /* Evita que el correo se ponga en mayúsculas */
+}
+
+/* Reutilizamos los estilos de los botones de icono del inventario */
+.actions-cell {
+  white-space: nowrap;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  margin-right: 0.5rem;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.edit-btn { color: #4dabf7; }
+.delete-btn { color: #ff6b6b; }
+.view-btn { color: #8ce99a; }
+
+/* Estilos para el modal de edición de usuario */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #223843;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px; /* Aumentamos el ancho para que quepan las dos columnas cómodamente */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-title {
+  margin-top: 0;
+  text-transform: capitalize;
+}
+
+.modal-form .form-group {
+  margin-bottom: 0; /* Quitamos el margen inferior ya que el gap del grid lo maneja */
+}
+
+/* Estilo para alinear labels y inputs en el modal */
+.modal-form .form-group {
+  display: grid;
+  grid-template-columns: 200px auto; /* La segunda columna se ajusta al contenido */
+  align-items: center;
+  
+}
+
+/* Para las filas que tienen dos campos, las hacemos de una sola columna */
+.modal-form .form-row .form-group {
+  display: block; /* Revertimos el grid para los campos internos */
+}
+
+/* Estilo para la fila de dos columnas (Nombre y Apellidos) */
+.modal-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; /* Espacio reducido entre los campos */
+}
+
+.modal-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.modal-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+}
+
+/* Estilo para las opciones del select para que se vean sobre fondo oscuro */
+.modal-select option {
+  background-color: #223843; /* Mismo fondo que el modal */
+  color: white;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.modal-button-cancel, .modal-button-confirm {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-button-cancel { background-color: #495057; color: white; }
+.modal-button-confirm { background-color: rgb(132, 81, 26); color: white; }
+
+/* Estilos para la gestión de roles */
+.add-role-form {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-role-form input {
+  flex-grow: 1;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.roles-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.roles-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.roles-list li:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.roles-list li span {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.role-count {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
+/* --- Estilos para la sección de permisos en el modal --- */
+.permissions-grid {
+  margin-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Crea dos columnas iguales */
+  gap: 1rem; /* Espacio entre los permisos */
+}
+
+.permissions-grid h4 {
+  grid-column: 1 / -1; /* El título ocupa todas las columnas */
+  margin: 0 0 0.5rem 0;
+  color: #eff1f3;
+}
+
+.permission-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Más espacio entre el checkbox y el texto */
+  background-color: transparent;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s;
+}
+
+.permission-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.permission-checkbox label {
+  margin: 0;
+  font-weight: 400;
+  cursor: pointer; /* Hace que toda la etiqueta sea clickeable */
+}
+
+.permission-checkbox:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- Estilos para la visualización de permisos --- */
+.permissions-view-list {
+  list-style: none;
+  padding: 0;
+  columns: 2;
+  gap: 1rem;
+}
+
+.permissions-view-list li {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.permission-enabled { color: #8ce99a; }
+.permission-disabled { color: #6c757d; text-decoration: line-through; }
+
+/* --- Asegurar que todos los textos sean blancos --- */
+/* Para labels que no estén en el modal */
+.config-container label {
+  color: #eff1f3; /* Blanco suave para etiquetas */
+}
+
+/* Para placeholders de inputs que no estén en el modal */
+.config-container input::placeholder {
+  color: rgba(255, 255, 255, 0.7); /* Blanco semitransparente */
+}

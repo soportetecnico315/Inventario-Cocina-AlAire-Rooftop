@@ -1,0 +1,488 @@
+.inventario-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.inventario-title {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  color: white;
+}
+
+.inventario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.search-bar input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.add-product-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  background-color: rgb(132, 81, 26);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-product-btn:hover {
+  background-color: rgb(152, 98, 38);
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inventory-table th {
+  background-color: #f8f9fa; /* Fondo blanco/gris claro para el encabezado */
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgb(18, 40, 54); /* Texto oscuro para contraste */
+}
+.sortable-header {
+  cursor: pointer;
+  position: relative;
+  user-select: none; /* Evita que el texto se seleccione al hacer clic */
+}
+
+.sortable-header:hover {
+  background-color: #e9ecef;
+}
+
+.sortable-header::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  margin-top: -4px;
+  border: 5px solid transparent;
+  opacity: 0.5;
+}
+
+.sortable-header.ascending::after { border-bottom-color: rgb(18, 40, 54); opacity: 1; }
+.sortable-header.descending::after { border-top-color: rgb(18, 40, 54); opacity: 1; }
+
+
+.inventory-table tbody tr {
+  transition: background-color 0.2s ease-in-out;
+  color: #fff;
+}
+
+/* Estilo de cebra para las filas (colores alternos) */
+.inventory-table tbody tr:nth-of-type(even) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.inventory-table td {
+  text-transform: capitalize;
+}
+
+.responsable-name {
+  font-weight: 500;
+}
+
+.responsable-date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6); /* Color grisáceo que encaja con el tema */
+  margin-top: 0.25rem;
+  white-space: nowrap; /* Evita que la fecha se parta en dos líneas */
+}
+
+.actions-cell button {
+  margin-right: 0.5rem;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.edit-btn { color: #4dabf7; }
+.delete-btn { color: #ff6b6b; }
+.observation-btn { color: #a9a9a9; }
+
+/* --- Modal Styles --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #223843;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-form input {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.modal-form .form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.modal-form .form-row input {
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cancel-btn { background-color: #495057; color: white; }
+.submit-btn { background-color: rgb(132, 81, 26); color: white; }
+
+/* --- Footer Table Actions --- */
+.table-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-btn {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-btn {
+  background-color: #4dabf7;
+  border-color: #4dabf7;
+  color: white;
+}
+
+.reviewed-btn {
+  background-color: transparent;
+  border-color: #8ce99a;
+  color: #8ce99a;
+}
+
+.reviewed-btn:hover {
+  background-color: #8ce99a;
+  color: rgb(18, 40, 54);
+}
+
+.download-btn {
+  background-color: rgb(132, 81, 26);
+  border-color: rgb(132, 81, 26);
+  color: white;
+}
+
+.download-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.download-option-btn {
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.download-option-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Pagination Styles --- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled):not(.active) {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgb(132, 81, 26);
+}
+
+.pagination-btn.active {
+  background-color: rgb(132, 81, 26);
+  border-color: rgb(152, 98, 38);
+  cursor: default;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ajuste para el contenedor en móvil */
+@media screen and (max-width: 992px) {
+  .inventario-container { padding: 1rem; }
+}
+
+/* --- Estilos para hacer la tabla responsiva --- */
+@media screen and (max-width: 992px) {
+  .inventory-table {
+    border-radius: 0;
+  }
+
+  .inventory-table thead {
+    display: none; /* Ocultamos los encabezados en móvil */
+  }
+
+  .inventory-table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .inventory-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Ajuste para la celda de responsable en móvil */
+  .responsable-wrapper {
+    text-align: right;
+  }
+
+  .inventory-table td::before {
+    content: attr(data-label); /* Usamos el atributo data-label como título */
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .inventory-table td:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* ========================================= */
+/* == Estilos Registro de Movimiento == */
+/* ========================================= */
+
+.movement-registration-container {
+  background-color: #1a2a33; /* Un tono ligeramente más oscuro para diferenciar la sección */
+  padding: 25px;
+  border-radius: 8px;
+  margin-top: 30px;
+  border: 1px solid #3a506b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.movement-title {
+  color: #eff1f3;
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #3a506b;
+  padding-bottom: 10px;
+}
+
+.movement-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px; /* Aumentamos más el espacio entre columnas */
+  align-items: flex-end;
+}
+
+.movement-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.movement-form label {
+  color: #dbe4ee;
+  margin-bottom: 12px; /* Aumentamos el espacio entre la etiqueta y el input */
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.movement-form input,
+.movement-form select {
+  width: 100%;
+  padding: 12px;
+  background-color: #2c3e50;
+  border: 1px solid #3a506b;
+  border-radius: 5px;
+  color: #eff1f3;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.movement-form input:focus,
+.movement-form select:focus {
+  outline: none;
+  border-color: #5bc0de;
+  box-shadow: 0 0 0 3px rgba(91, 192, 222, 0.2);
+}
+
+.movement-form select option {
+  background-color: #2c3e50;
+  color: #eff1f3;
+}
+
+/* El botón ya usa clases existentes, pero podemos asegurar que ocupe todo el espacio en su columna si es necesario */
+.movement-form .save-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+}
+
+/* Media query para mejorar la vista en pantallas pequeñas */
+@media (max-width: 768px) {
+  .movement-form {
+    grid-template-columns: 1fr; /* Una sola columna en móviles */
+  }
+}
+
+/* Estilos para el autocompletado de productos */
+.autocomplete-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #2c3e50;
+  border: 1px solid #3a506b;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.suggestions-list li {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.suggestions-list li:hover {
+  background-color: #3a506b;
+}

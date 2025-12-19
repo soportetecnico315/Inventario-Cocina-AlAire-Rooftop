@@ -1,0 +1,115 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  color: #fff;
+  background: linear-gradient(135deg, rgb(18, 40, 54) 0%, #223843 100%);
+}
+
+/* --- Header --- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: rgba(0, 0, 0, 0);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color:#fff
+}
+
+.header-user-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  color: #fff;
+}
+
+.welcome-message {
+  text-transform: capitalize; /* Pone la primera letra en mayúscula */
+}
+
+.logout-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgb(132, 81, 26);
+  background-color: transparent;
+  color: rgb(132, 81, 26);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: rgb(132, 81, 26);
+  color: #fff;
+}
+
+/* --- Barra de Navegación --- */
+.dashboard-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: rgba(18, 40, 54, 0.5);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.nav-option {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.nav-option:not(.nav-option-active):hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(132, 81, 26, 0.5);
+}
+
+.nav-option-active {
+  background-color: rgb(132, 81, 26);
+  color: #fff;
+  cursor: default;
+  border-color: rgb(152, 98, 38);
+}
+
+/* --- Body --- */
+.dashboard-body {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center; /* Centra el contenido horizontalmente */
+  padding: 2rem;
+  overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+  /* El contenido dentro del body se centrará por sus propios estilos (ej: inventario-container) */
+}
+
+/* --- Footer --- */
+.dashboard-footer {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+}

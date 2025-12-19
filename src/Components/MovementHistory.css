@@ -1,0 +1,36 @@
+.history-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.history-filters input,
+.history-filters select {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  flex-grow: 1;
+  min-width: 200px;
+}
+
+.history-table th,
+.history-table td {
+  white-space: nowrap; /* Evita que el contenido de las celdas se rompa en varias líneas */
+}
+
+/* Ajustes para la tabla de historial en móviles */
+@media screen and (max-width: 992px) {
+  .history-table td {
+    /* Hereda la mayoría de los estilos de .admin-table td */
+    font-size: 0.9rem;
+  }
+
+  .history-table td::before {
+    /* Hereda la mayoría de los estilos de .admin-table td::before */
+    font-size: 0.75rem;
+  }
+}

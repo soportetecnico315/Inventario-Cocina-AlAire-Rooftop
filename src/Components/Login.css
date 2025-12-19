@@ -1,0 +1,187 @@
+/* Animación de entrada para el contenedor */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  margin: 2rem auto;
+  border-radius: 16px;
+
+  /* Efecto Glassmorphism */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* Para Safari */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+  /* Aplicamos la animación */
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.login-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain; /* Asegura que la imagen escale bien sin deformarse */
+  margin-bottom: 1rem;
+}
+
+.login-container h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 1rem; /* Espacio entre elementos del form */
+}
+
+/* Nueva clase para las filas de dos columnas */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.input-group {
+  position: relative;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem; /* Espacio para el icono */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* Estilos para el select de Rol */
+.login-form select {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem; /* Espacio para el icono */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  -webkit-appearance: none; /* Quita la apariencia por defecto en Safari/Chrome */
+  -moz-appearance: none; /* Quita la apariencia por defecto en Firefox */
+  appearance: none;
+}
+
+/* Estilo para las opciones del dropdown */
+.login-form select option {
+  background: rgb(18, 40, 54);
+  color: #fff;
+}
+
+.login-form select:focus {
+  outline: none;
+  border-color: rgb(132, 81, 26);
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(132, 81, 26, 0.5);
+}
+
+/* Estilo para el placeholder */
+.login-form input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: rgb(132, 81, 26);
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(132, 81, 26, 0.5);
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.2rem;
+}
+
+.login-form button {
+  padding: 1rem;
+  margin-top: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: rgb(132, 81, 26);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-form button:hover:not(:disabled) {
+  background-color: rgb(152, 98, 38); /* Un tono ligeramente más claro para el hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.login-form button:disabled {
+  background-color: rgba(255, 126, 95, 0.5);
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: rgba(255, 23, 68, 0.8);
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Estilos para el texto de cambio de formulario */
+.form-switch-text {
+  margin-top: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.form-switch-button {
+  background: none;
+  border: none;
+  color: rgb(152, 98, 38);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
